@@ -15,6 +15,7 @@
 #include <linux/module.h>
 #include <linux/compat.h>
 #include <linux/swap.h>
+#include <trace/events/mmcio.h>
 
 static const struct file_operations fuse_direct_io_file_operations;
 
@@ -818,7 +819,7 @@ static ssize_t fuse_fill_write_pages(struct fuse_req *req,
 
 		mark_page_accessed(page);
 
-		iov_iter_advance(ii, tmp);
+    iov_iter_advance(ii, tmp);
 		if (!tmp) {
 			unlock_page(page);
 			page_cache_release(page);
@@ -916,6 +917,7 @@ static ssize_t fuse_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 
 	WARN_ON(iocb->ki_pos != pos);
 
+	trace_fuse_file_write(iocb->ki_filp->f_path.dentry, iocb->ki_left);
 	ocount = 0;
 	err = generic_segment_checks(iov, &nr_segs, &ocount, VERIFY_READ);
 	if (err)
